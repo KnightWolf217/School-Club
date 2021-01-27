@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>After School Club</title>
+    <!-- importing vue package -->
+    <script src="https://unpkg.com/vue"></script>
+</head>
+
+<body>
+    <!-- app div -->
+    <div id="app">
+        <h1 v-text="sitename"></h1>
+        <span>Your Shopping Cart - </span><span v-text=cart></span>
+        <h1></h1>
+        <div id="cartButton"><button v-on:click='checkout'>Checkout</button></div>
+        <h1></h1>
+        <!-- sorting options -->
+        <div id='sorting'>
+            <label for="type">Sort By : </label>
+            <input type="radio" id="subject" name="sort" value="title" autocomplete="off">
+            <label>Subject</label>
+            <input type="radio" id="location" name="sort" value="location" autocomplete="off">
+            <label>Location</label>
+            <input type="radio" id="price" name="sort" value="price" autocomplete="off">
+            <label>Price</label>
+            <input type="radio" id="availability" name="sort" value="spaces" autocomplete="off">
+            <label>Availability</label>
+        </div>
+        <h2></h2>
+        <label for="order">Order : </label>
+        <input type="radio" id="ascending" name="order" value="1" autocomplete="off">
+        <label for="ascending">Ascending</label>
+        <input type="radio" id="descending" name="order" value="-1" autocomplete="off">
+        <label for="descending">Descending</label>
+        <h2></h2>
+        <button v-on:click="sortArray">Sort</button>
+
+
+        <h1></h1>
+
+        <!-- displaying lessons -->
+        <div v-for="array in lessons">
+            <div style="border:solid; height:220px; width:300px;">
+                <div style="float:left;">
+                    <img style="height: 120px; width: 120px; object-fit: contain;" v-bind:src="array.image">
+                </div>
+                <div style="float:left;">
+                    <h2 v-text="array.title"></h2>
+                    <p v-text="array.location"></p>
+                    <p style="display:inline">Price: £</p>
+                    <span v-text="array.price">
+                </span>
+                    <br><br>
+                    <p style="display:inline">Number of spaces: </p>
+                    <span v-text="array.spaces">
+                </span>
+                    <br><br>
+                    <div>
+                        <button v-bind:id="lessons.indexOf(array)" v-on:click="addToCart($event)">Add to Cart</button>
+                    </div>
+                </div>
+            </div>
+            <h1></h1>
+        </div>
+
+    </div>
+
+    <script>
+        localStorage.clear(); //clearing localstorage 
+        document.getElementById('cartButton').style.display = "none"; //disabling the cart button until a lesson is added to card
+        let app = new Vue({ //vue instance
+            el: '#app',
+            data: {
+                lessons: [],
+                sitename: "After School Club",
+                cart: []
+            },
+            methods: {
+                getLessons: function() {
+                    fetch('http://localhost:8080/collection/lessons').then(
+                        function(response) {
+                            response.json().then(
+                                function(json) {
+                                    // save the returned JSON object to 'lessons' array
+                                    app.lessons = json;
+                                });
+                        })
+                },
+                addToCart(event) {
+                    if (this.cart != 'undefined') {
+                        document.getElementById('cartButton').style.display = "block";
+                    }
+                    id = event.currentTarget.id;
+                    if (this.lessons[id].spaces > 0) { //button only works if there are enough spaces
+                        this.lessons[id].spaces -= 1; //substract one space
+                        this.cart.push(this.lessons[id].title); //add lesson to cart array
+                        localStorage.setItem(Math.random(), JSON.stringify(this.lessons[id])); //create local storage for the particular lesson
+                    }
+                },
+                sortArray: function() {
+
+                    //sort by subject
+                    function subSort(a, b) {
+                        if (a.title < b.title)
+                            return -1;
+                        if (a.title > b.title)
+                            return 1;
+                        return 0;
+                    }
+
+                    //sort by location
+                    function locSort(a, b) {
+                        if (a.location < b.location)
+                            return -1;
+                        if (a.location > b.location)
+                            return 1;
+                        return 0;
+                    }
+
+                    //sort by price
+                    function priceSort(a, b) {
+                        if (a.price < b.price)
+                            return -1;
+                        if (a.price > b.price)
+                            return 1;
+                        return 0;
+                    }
+
+                    // sort by spaces
+                    function spacesSort(a, b) {
+                        if (a.spaces < b.spaces)
+                            return -1;
+                        if (a.spaces > b.spaces)
+                            return 1;
+                        return 0;
+                    }
+
+                    let subject = document.getElementById('subject');
+                    let location = document.getElementById('location');
+                    let price = document.getElementById('price');
+                    let stock = document.getElementById('availability');
+
+                    let asc = document.getElementById('ascending');
+                    let desc = document.getElementById('descending');
+
+                    //sorting the lessons in terms of what radio buttons are selected for sorting
+                    if (subject.checked && asc.checked) {
+                        return this.lessons.sort(subSort);
+                    } else if (subject.checked && desc.checked) {
+                        this.lessons.sort(subSort);
+                        return this.lessons.reverse();
+                    } else if (location.checked && asc.checked) {
+                        return this.lessons.sort(locSort);
+                    } else if (location.checked && desc.checked) {
+                        this.lessons.sort(locSort);
+                        return this.lessons.reverse();
+                    } else if (price.checked && asc.checked) {
+                        return this.lessons.sort(priceSort);
+                    } else if (price.checked && desc.checked) {
+                        this.lessons.sort(priceSort);
+                        return this.lessons.reverse();
+                    } else if (stock.checked && asc.checked) {
+                        return this.lessons.sort(spacesSort);
+                    } else if (stock.checked && desc.checked) {
+                        this.lessons.sort(spacesSort);
+                        return this.lessons.reverse();
+                    }
+
+                },
+                checkout: function() {
+                    window.location.href = "checkout.html" //redirect user to checkout page
+                }
+            },
+            beforeMount() {
+                this.getLessons()
+            },
+        })
+    </script>
+
+</body>
+
+</html>
