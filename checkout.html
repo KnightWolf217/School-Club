@@ -1,1 +1,145 @@
+<!DOCTYPE html>
+<html>
 
+<head>
+    <title>Checkout</title>
+    <script src="https://unpkg.com/vue"></script>
+</head>
+
+<body>
+    <!-- app div -->
+    <div id="app">
+        <button v-on:click=home>Back to Lessons</button>
+        <h1 id='logo'>Shopping Cart - </h1>
+        <h1></h1>
+        <div v-for="array in cart">
+            <div style="border:solid; height:220px; width:300px;">
+                <div style="float:left;">
+                    <img style="height: 120px; width: 120px; object-fit: contain;" v-bind:src="array.image">
+                </div>
+                <div style="float:left;">
+                    <h2>{{array.title}}</h2>
+                    <p>{{array.location}}</p>
+                    <p>Price: £ {{array.price}}</p>
+                    <p>Spaces: {{array.spaces}}</p>
+                    <div>
+                        <button v-bind:name="array.title" v-bind:id="cart.indexOf(array)" v-on:click="remove($event)">Remove</button>
+                    </div>
+                </div>
+            </div>
+            <h1></h1>
+        </div>
+        <h1></h1>
+        <div id=payBox>
+            <p>Please Enter your Details for Checkout - </p>
+            <p></p>
+            Name: <input v-model="user.name" v-on:input="checkDetails" id="name" type="text"></input> &nbsp; &nbsp; Phone: <input v-model="user.phone" v-on:input="checkDetails" id="phone"></input>
+            <h2></h2>
+            <button id="checkout" v-on:click="createOrder(); order();">Checkout</button>
+        </div>
+        <div id="confirm"></div>
+    </div>
+
+    <script>
+        document.getElementById("checkout").style.display = "none"; //disabling checkout button until the user enters a valid name and phone number
+        let app = new Vue({ //vue instance
+            el: '#app',
+            data: {
+                user: {
+                    name: "",
+                    phone: ""
+                },
+                sitename: "After School Club",
+                cart: [],
+            },
+            methods: {
+                createOrder: function() {
+                    for (i = 0; i < this.cart.length; i++) {
+                        let myHeaders = new Headers();
+                        myHeaders.append("Content-Type", "application/json");
+
+                        let raw = JSON.stringify({
+                            "name": this.user.name,
+                            "phone": this.user.phone,
+                            "lessonTitle": this.cart[i].title,
+                            "lessonId": this.cart[i].id,
+                            "spaces": this.cart[i].spaces
+                        });
+
+                        let requestOptions = {
+                            method: 'POST',
+                            headers: myHeaders,
+                            body: raw,
+                            redirect: 'follow'
+                        };
+
+                        fetch("http://localhost:8080/collection/orders", requestOptions)
+                            .then(response => response.text())
+                            .then(result => console.log(result))
+                            .catch(error => console.log('error', error));
+                    }
+                },
+                AddLessons() { //adding lessons from local storage to cart array 
+                    let keys = Object.keys(localStorage);
+                    keys.forEach(key => {
+                        let x = localStorage.getItem(key)
+                        let y = JSON.parse(x);
+                        this.cart.push(y);
+                    })
+                },
+                home() {
+                    window.location.href = "index.html"; //button to redirect back to lessons page
+                },
+                remove(id) { //removing the selected lesson from cart
+                    id = event.currentTarget.id;
+                    name = event.currentTarget.name;
+                    this.cart.splice(id, 1);
+                    localStorage.removeItem(name);
+                },
+                checkDetails() {
+                    let name = this.user.name;
+                    let phone = this.user.phone;
+                    if ((phone.length == 10) & (name.length != 0) & (!/[^a-zA-Z]/.test(name)) & !isNaN(phone)) { //check if name is not empty and only letters, phone is 10 digits and only numbers
+                        document.getElementById("checkout").style.display = "block"; //display the checkout button if name and phone are valid
+                        document.getElementById("confirm").innerHTML = ""; //removing error message
+                        let bottom = document.getElementById("confirm");
+                        bottom.scrollIntoView(); //scrolling to the button
+                    } else {
+                        document.getElementById("confirm").innerHTML = "<p>Please enter a valid name and 10 digit phone number!</p>"; //display error message
+                        document.getElementById("checkout").style.display = "none"; //removing checkout button if name and phone are invalid
+                        let bottom = document.getElementById("confirm");
+                        bottom.scrollIntoView(); //scrolling to the error message
+                    }
+                },
+                order() {
+                    if (this.cart.length > 0) { //if cart is not empty
+                        document.getElementById("confirm").innerHTML = "<h2>Order Complete!</h2>" +
+                            "<p></p>" +
+                            "<p>Name: " + this.user.name + "</p>" + //display user name
+                            "<p>Phone: " + this.user.phone + "</p>" + //display user phone
+                            "<h2></h2>" +
+                            "<p>Lessons Ordered - </p>" + "<span id='lessons'></span>";
+                        for (i = 0; i < this.cart.length; i++) { //display lessons that were ordered
+                            items = "<li>" + this.cart[i].title + " (" + this.cart[i].spaces + ")" + "</li>"
+                            document.getElementById('lessons').innerHTML += items;
+                        };
+                        let bottom = document.getElementById("confirm");
+                        bottom.scrollIntoView(); //scrolling to the order details div
+                        alert("Order Submitted! Please click ok to see order details"); //alerting the user that order is complete
+                        localStorage.clear(); //clearing local storage
+                        this.cart = []; //clearing cart
+                        document.getElementById("checkout").style.display = "none"; //removing checkout button
+                        document.getElementById("logo").innerHTML = ""; //removing shopping cart heading
+                        document.getElementById("payBox").innerHTML = ""; //removing all other form elements such as name and phone input
+                    } else alert("Please add items to your cart!") //alert the user to add items to cart if he attempts to checkout with an empty cart
+                }
+            },
+            beforeMount() { // add lessons from local storage to cart when the page loads
+                this.AddLessons()
+            },
+        })
+    </script>
+
+</body>
+
+</html>
