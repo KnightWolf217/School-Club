@@ -78,7 +78,7 @@
             },
             methods: {
                 getLessons: function() {
-                    fetch('http://localhost:8080/collection/lessons').then(
+                    fetch('https://cst3145-school-club.herokuapp.com/collection/lessons').then(
                         function(response) {
                             response.json().then(
                                 function(json) {
