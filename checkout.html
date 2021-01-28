@@ -55,7 +55,7 @@
             },
             methods: {
                 getLessons: function() { //function to get lessons data from mongodb database
-                    fetch('http://localhost:8080/collection/lessons').then(
+                    fetch('https://cst3145-school-club.herokuapp.com/collection/lessons').then(
                         function(response) {
                             response.json().then(
                                 function(json) {
@@ -85,7 +85,7 @@
                             redirect: 'follow'
                         };
 
-                        fetch("http://localhost:8080/collection/orders", requestOptions)
+                        fetch("https://cst3145-school-club.herokuapp.com/collection/orders", requestOptions)
                             .then(response => response.text())
                             .then(result => console.log(result))
                             .catch(error => console.log('error', error));
@@ -107,7 +107,7 @@
                             redirect: 'follow'
                         };
 
-                        fetch("http://localhost:8080/collection/lessons/" + this.cart[i]._id, requestOptions)
+                        fetch("https://cst3145-school-club.herokuapp.com/collection/lessons/" + this.cart[i]._id, requestOptions)
                             .then(response => response.text())
                             .then(result => console.log(result))
                             .catch(error => console.log('error', error));
