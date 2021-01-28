@@ -90,3 +90,4 @@ app.put('/collection/:collectionName/:id', (req, res, next) => {
         })
     console.log("Lesson available spaces updated!")
 })
+ 
