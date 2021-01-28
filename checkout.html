@@ -35,7 +35,7 @@
             <p></p>
             Name: <input v-model="user.name" v-on:input="checkDetails" id="name" type="text"></input> &nbsp; &nbsp; Phone: <input v-model="user.phone" v-on:input="checkDetails" id="phone"></input>
             <h2></h2>
-            <button id="checkout" v-on:click="createOrder(); order();">Checkout</button>
+            <button id="checkout" v-on:click="createOrder(); updateLessons(); order();">Checkout</button>
         </div>
         <div id="confirm"></div>
     </div>
@@ -45,6 +45,7 @@
         let app = new Vue({ //vue instance
             el: '#app',
             data: {
+                lessons: [],
                 user: {
                     name: "",
                     phone: ""
@@ -53,11 +54,22 @@
                 cart: [],
             },
             methods: {
-                createOrder: function() {
+                getLessons: function() { //function to get lessons data from mongodb database
+                    fetch('http://localhost:8080/collection/lessons').then(
+                        function(response) {
+                            response.json().then(
+                                function(json) {
+                                    // save the returned JSON objects to 'lessons' array
+                                    app.lessons = json;
+                                });
+                        })
+                },
+                createOrder: function() { //create order funcition to save order to mongodb
                     for (i = 0; i < this.cart.length; i++) {
                         let myHeaders = new Headers();
                         myHeaders.append("Content-Type", "application/json");
 
+                        //stringifying order details
                         let raw = JSON.stringify({
                             "name": this.user.name,
                             "phone": this.user.phone,
@@ -74,6 +86,28 @@
                         };
 
                         fetch("http://localhost:8080/collection/orders", requestOptions)
+                            .then(response => response.text())
+                            .then(result => console.log(result))
+                            .catch(error => console.log('error', error));
+                    }
+                },
+                updateLessons: function() { //update lessons spaces 
+                    for (i = 0; i < this.cart.length; i++) {
+                        var myHeaders = new Headers();
+                        myHeaders.append("Content-Type", "application/json");
+
+                        var raw = JSON.stringify({
+                            "spaces": this.lessons[i].spaces - this.cart[i].spaces
+                        });
+
+                        var requestOptions = {
+                            method: 'PUT',
+                            headers: myHeaders,
+                            body: raw,
+                            redirect: 'follow'
+                        };
+
+                        fetch("http://localhost:8080/collection/lessons/" + this.cart[i]._id, requestOptions)
                             .then(response => response.text())
                             .then(result => console.log(result))
                             .catch(error => console.log('error', error));
@@ -136,6 +170,7 @@
             },
             beforeMount() { // add lessons from local storage to cart when the page loads
                 this.AddLessons()
+                this.getLessons()
             },
         })
     </script>
