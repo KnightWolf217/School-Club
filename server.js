@@ -4,17 +4,23 @@ let mongoClient = require('mongodb').MongoClient;
 let dbUrl = "mongodb+srv://user:PassWord123@cluster0.rwdav.mongodb.net/school?retryWrites=true&w=majority";
 let cors = require('cors')
 app.use(cors())
+let bodyParser = require('body-parser');
+app.use(bodyParser.json());
 
 let db;
 mongoClient.connect(dbUrl, (err, client) => {
     db = client.db('school')
 })
 
+//static files
+app.use('/images', express.static('images'));
+
+//listening on port 8080
 app.listen(8080);
 
 //get requests
 app.get('/', (req, res) => {
-    res.send('Select a collection');
+    res.sendFile(__dirname + '/index.html');
 })
 
 app.param('collectionName', (req, res, next, collectionName) => {
@@ -22,6 +28,7 @@ app.param('collectionName', (req, res, next, collectionName) => {
     return next()
 })
 
+//get lessons
 app.get('/collection/:collectionName', (req, res, next) => {
     req.collection.find({}, {
         sort: [
@@ -30,6 +37,14 @@ app.get('/collection/:collectionName', (req, res, next) => {
     }).toArray((e, results) => {
         if (e) return next(e);
         res.send(results);
+    })
+})
+
+//create order
+app.post('/collection/:collectionName', (req, res, next) => {
+    req.collection.insert(req.body, (e, results) => {
+        if (e) return next(e)
+        res.send(results.ops)
     })
 })
 
