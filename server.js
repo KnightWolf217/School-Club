@@ -7,6 +7,7 @@ let cors = require('cors')
 app.use(cors())
 let bodyParser = require('body-parser');
 app.use(bodyParser.json());
+let port = process.env.PORT || 8080
 
 let db;
 mongoClient.connect(dbUrl, { useNewUrlParser: true, useUnifiedTopology: true }, (err, client) => {
@@ -33,14 +34,14 @@ if (fs.existsSync(mainFile)) {
     console.log("Index.html not found")
 }
 
-//listening on port 8080
-app.listen(8080, (req, res) => {
-    console.log("Server running on port 8080")
+//listening on port
+app.listen(port, (req, res) => {
+    console.log("Server running on port " + port)
 });
 
 //get requests
 app.get('/', (req, res) => {
-    res.sendFile(__dirname + '/index.html');
+    res.send('Select a collection, e.g., /collection/lessons')
 })
 
 app.param('collectionName', (req, res, next, collectionName) => {
