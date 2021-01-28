@@ -82,7 +82,7 @@
                         function(response) {
                             response.json().then(
                                 function(json) {
-                                    // save the returned JSON object to 'lessons' array
+                                    // save the returned JSON objects to 'lessons' array
                                     app.lessons = json;
                                 });
                         })
@@ -94,8 +94,19 @@
                     id = event.currentTarget.id;
                     if (this.lessons[id].spaces > 0) { //button only works if there are enough spaces
                         this.lessons[id].spaces -= 1; //substract one space
-                        this.cart.push(this.lessons[id].title); //add lesson to cart array
-                        localStorage.setItem(Math.random(), JSON.stringify(this.lessons[id])); //create local storage for the particular lesson
+                        if (this.cart.includes(this.lessons[id].title)) {
+                            let x = localStorage.getItem(this.lessons[id].title); //getting the localstorage item
+                            let newObj = JSON.parse(x); //parsing the JSON string
+                            newObj.spaces++; //adding one to the spaces of the item in cart
+                            localStorage.setItem(this.lessons[id].title, JSON.stringify(newObj)); //setting the new updated JSON string
+                        } else {
+                            this.cart.push(this.lessons[id].title); //add lesson to cart array
+                            localStorage.setItem(this.lessons[id].title, JSON.stringify(this.lessons[id])); //create local storage for the particular lesson
+                            let x = localStorage.getItem(this.lessons[id].title); //getting the localstorage item
+                            let newObj = JSON.parse(x); //parsing the JSON string
+                            newObj.spaces = 1; //adding one to the spaces of the item in cart
+                            localStorage.setItem(this.lessons[id].title, JSON.stringify(newObj)); //setting the new updated JSON string
+                        }
                     }
                 },
                 sortArray: function() {
